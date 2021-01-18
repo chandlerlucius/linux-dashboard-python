@@ -47,8 +47,8 @@ async def calculate_and_store_mem_usage(parameter):
     db_client = InfluxDBClient(host='localhost', port=8086, database='system_stats')
     db_client.create_database('system_stats')
 
-    mem_usage = (curr_mem_total - curr_mem_available) / curr_mem_total * 100
-    swap_usage = (curr_swap_total - curr_swap_available) / curr_swap_total * 100
+    mem_usage = (curr_mem_total - curr_mem_available) / curr_mem_total * 100 if curr_mem_total > 0 else 1
+    swap_usage = (curr_swap_total - curr_swap_available) / curr_swap_total * 100 if curr_swap_total > 0 else 1
 
     current = [{
         "measurement" : "memory",
