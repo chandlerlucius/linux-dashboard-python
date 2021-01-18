@@ -6,9 +6,9 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
   <meta name="author" content="Chandler Lucius">
-  <meta name="title" content="PWA Starter Template" />
+  <meta name="title" content="PWA dashboard for linux" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="A template used to begin work on a PWA (Progressive Web App)" />
+  <meta name="description" content="A PWA dashboard for linux" />
 
   <meta name="theme-color" content="#01579B" />
   <meta name="msapplication-TileColor" content="#FFFFFF">
@@ -21,7 +21,9 @@
   <link rel="shortcut icon" href="./images/icons/favicon.ico">
   <link rel="apple-touch-icon" sizes="180x180" href="./images/icons/apple-touch-icon.png">
 
-  <title>PWA Starter Template</title>
+  <title>PWA Linux Dashboard</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.0.1/echarts.common.min.js"></script>
+  <script src="./js/websocket.js"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function () {
@@ -38,7 +40,11 @@
 </head>
 
 <body>
-  <h1>PWA Starter Template</h1>
+  <h1>PWA Linux Dashboard</h1>
 </body>
+
+<template id="chart-template">
+  <div class="chart" style="height: 300px;"></div>
+</template>
 
 </html>
