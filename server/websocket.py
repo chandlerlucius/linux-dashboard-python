@@ -107,7 +107,7 @@ async def calculate_and_store_disk_usage(parameter):
     prev_millis = prev_io_millis_dict['io_millis'] if 'io_millis' in prev_io_millis_dict else 0
     
     curr_time = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
-    prev_time = io_millis_json['time']
+    prev_time = prev_io_millis_dict['time'] if 'time' in prev_io_millis_dict else 0
 
     disk_usage = (curr_io_millis - prev_millis) / ((curr_time - prev_time).seconds * 1000)
 
