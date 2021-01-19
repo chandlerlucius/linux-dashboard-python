@@ -107,6 +107,7 @@ async def calculate_and_store_disk_usage(parameter):
     prev_io_millis_dict = prev_io_millis.raw
     prev_millis = prev_io_millis_dict['io_millis'] if 'io_millis' in prev_io_millis_dict else 0
     print(prev_io_millis)
+    print(prev_io_millis_dict)
     
     curr_time = int(time.time() * 1000)
     prev_time = prev_io_millis_dict['time'] if 'time' in prev_io_millis_dict else 0
