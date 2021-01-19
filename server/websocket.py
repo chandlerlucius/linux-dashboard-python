@@ -118,7 +118,7 @@ async def calculate_and_store_disk_usage(parameter):
         "measurement" : "disk",
         "time": curr_time,
         "fields": {
-            "io_millis": io_millis,
+            "io_millis": curr_io_millis,
             "disk_usage": disk_usage
         }
     }]
