@@ -35,34 +35,6 @@ async def get_mem_usage():
     mem_usage.raw['series'][0]['max'] = 100
     mem_usage.raw['series'][0]['suffix'] = '%'
     return json.dumps(mem_usage.raw['series'][0])
-
-async def calculate_and_store_mem_usage(parameter):
-    curr_mem_available_total = check_output(['sh', 'server_stats.sh', 'mem_available_total']).decode("utf-8")
-    curr_mem_available_total_json = json.loads(curr_mem_available_total)
-    curr_mem_available = curr_mem_available_total_json['mem_available']
-    curr_mem_total = curr_mem_available_total_json['mem_total']
-    curr_swap_available = curr_mem_available_total_json['swap_available']
-    curr_swap_total = curr_mem_available_total_json['swap_total']
-
-    db_client = InfluxDBClient(host='localhost', port=8086, database='system_stats')
-    db_client.create_database('system_stats')
-
-    mem_usage = (curr_mem_total - curr_mem_available) / curr_mem_total * 100 if curr_mem_total > 0 else 1
-    swap_usage = (curr_swap_total - curr_swap_available) / curr_swap_total * 100 if curr_swap_total > 0 else 1
-
-    current = [{
-        "measurement" : "memory",
-        "time": datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
-        "fields": {
-            "mem_available": curr_mem_available,
-            "mem_total": curr_mem_total,
-            "mem_usage": mem_usage,
-            "swap_available": curr_swap_available,
-            "swap_total": curr_swap_total,
-            "swap_usage": swap_usage
-        }
-    }]
-    db_client.write_points(current)
     
 async def calculate_and_store_cpu_usage(parameter):
     curr_cpu_idle_total = check_output(['sh', 'server_stats.sh', 'cpu_idle_total']).decode("utf-8")
@@ -93,6 +65,62 @@ async def calculate_and_store_cpu_usage(parameter):
     }]
     db_client.write_points(current)
 
+async def calculate_and_store_mem_usage(parameter):
+    curr_mem_available_total = check_output(['sh', 'server_stats.sh', 'mem_available_total']).decode("utf-8")
+    curr_mem_available_total_json = json.loads(curr_mem_available_total)
+    curr_mem_available = curr_mem_available_total_json['mem_available']
+    curr_mem_total = curr_mem_available_total_json['mem_total']
+    curr_swap_available = curr_mem_available_total_json['swap_available']
+    curr_swap_total = curr_mem_available_total_json['swap_total']
+
+    db_client = InfluxDBClient(host='localhost', port=8086, database='system_stats')
+    db_client.create_database('system_stats')
+
+    mem_usage = (curr_mem_total - curr_mem_available) / curr_mem_total * 100 if curr_mem_total > 0 else 1
+    swap_usage = (curr_swap_total - curr_swap_available) / curr_swap_total * 100 if curr_swap_total > 0 else 1
+
+    current = [{
+        "measurement" : "memory",
+        "time": datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
+        "fields": {
+            "mem_available": curr_mem_available,
+            "mem_total": curr_mem_total,
+            "mem_usage": mem_usage,
+            "swap_available": curr_swap_available,
+            "swap_total": curr_swap_total,
+            "swap_usage": swap_usage
+        }
+    }]
+    db_client.write_points(current)
+    
+async def calculate_and_store_disk_usage(parameter):
+    io_millis = check_output(['sh', 'server_stats.sh', 'disk_info']).decode("utf-8")
+    io_millis_json = json.loads(io_millis)
+    curr_io_millis = io_millis_json['io_millis']
+
+    db_client = InfluxDBClient(host='localhost', port=8086, database='system_stats')
+    db_client.create_database('system_stats')
+
+    prev_io_millis = db_client.query('SELECT LAST("io_millis") FROM disk')
+    prev_io_millis_dict = prev_io_millis.raw
+    prev_millis = prev_io_millis_dict['io_millis'] 
+    
+    curr_time = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+    prev_time = io_millis_json['time']
+
+    disk_usage = (curr_io_millis - prev_millis) / ((curr_time - prev_time).seconds * 1000)
+
+    current = [{
+        "measurement" : "disk",
+        "time": curr_time,
+        "fields": {
+            "io_millis": io_millis,
+            "disk_usage": disk_usage
+        }
+    }]
+    db_client.write_points(current)
+    print(current)
+
 async def send_to_clients(json):
     for client in clients:
         await client.send(json)
@@ -111,4 +139,5 @@ loop.create_task(run_async_function_with_interval(get_and_send_data, get_cpu_usa
 loop.create_task(run_async_function_with_interval(get_and_send_data, get_mem_usage, 1))
 loop.create_task(run_async_function_with_interval(calculate_and_store_cpu_usage, 1, 1))
 loop.create_task(run_async_function_with_interval(calculate_and_store_mem_usage, 1, 1))
+loop.create_task(run_async_function_with_interval(calculate_and_store_disk_usage, 1, 1))
 loop.run_forever()
