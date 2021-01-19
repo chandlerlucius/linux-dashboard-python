@@ -104,7 +104,7 @@ async def calculate_and_store_disk_usage(parameter):
 
     prev_io_millis = db_client.query('SELECT LAST("io_millis") FROM disk')
     prev_io_millis_dict = prev_io_millis.raw
-    prev_millis = prev_io_millis_dict['io_millis'] 
+    prev_millis = prev_io_millis_dict['io_millis'] if 'io_millis' in prev_io_millis_dict else 0
     
     curr_time = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
     prev_time = io_millis_json['time']
