@@ -22,7 +22,7 @@ const updateChart = function (json) {
     } else {
         chart = echarts.getInstanceByDom(chartElement);
     }
-    
+
     const series = [];
     for(let i = 1; i < json.columns.length; i++) {
         series.push({
@@ -117,7 +117,6 @@ const start = function () {
                 return;
             }
             const json = JSON.parse(event.data);
-            console.log(json);
             updateChart(json);
         } catch (error) {
             console.log(error);
