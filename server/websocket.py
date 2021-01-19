@@ -116,7 +116,7 @@ async def calculate_and_store_disk_usage(parameter):
 
     current = [{
         "measurement" : "disk",
-        "time": curr_time.strftime('%Y-%m-%dT%H:%M:%SZ'),
+        "time": curr_time,
         "fields": {
             "io_millis": io_millis,
             "disk_usage": disk_usage
