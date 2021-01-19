@@ -5,6 +5,7 @@ from subprocess import check_output
 from datetime import datetime
 import asyncio
 import websockets
+import traceback
 import json
 
 clients = set()
@@ -13,8 +14,8 @@ async def run_async_function_with_interval(function, parameter, interval):
     while True:
         try:
             await function(parameter)
-        except Exception as err:
-            print("Error: {0}".format(err))
+        except Exception:
+            print(traceback.format_exc())
         finally:
             await asyncio.sleep(1)
 
