@@ -40,6 +40,19 @@ mem_available_total() {
     echo "{ \"mem_available\" : $mem_available, \"mem_total\": $mem_total, \"swap_available\" : $swap_available, \"swap_total\": $swap_total }"
 }
 
+# Disk info
+# https://www.percona.com/doc/percona-toolkit/2.1/pt-diskstats.html
+disk_info() {
+    io_millis=$(awk '$2 == "0" { print $13 " " }' /proc/diskstats | tr -d '\n')
+    total_millis=0;
+    for millis in $io_millis
+    do
+        total_millis=$((total_millis + millis))
+    done
+
+    echo "{ \"io_millis\": $total_millis }"
+}
+
 help() {
     grep "^.*()" "$0" | grep -v "help"
 }
