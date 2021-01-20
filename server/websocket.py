@@ -37,6 +37,13 @@ async def get_mem_usage():
     mem_usage.raw['series'][0]['max'] = 100
     mem_usage.raw['series'][0]['suffix'] = '%'
     return json.dumps(mem_usage.raw['series'][0])
+
+async def get_mem_usage():
+    db_client = InfluxDBClient(host='localhost', port=8086, database='system_stats')
+    mem_usage = db_client.query('SELECT disk_usage FROM disk WHERE time > now() - 1m') 
+    mem_usage.raw['series'][0]['max'] = 100
+    mem_usage.raw['series'][0]['suffix'] = '%'
+    return json.dumps(mem_usage.raw['series'][0])
     
 async def calculate_and_store_cpu_usage(parameter):
     curr_cpu_idle_total = check_output(['sh', 'server_stats.sh', 'cpu_idle_total']).decode("utf-8")
@@ -143,6 +150,7 @@ loop = asyncio.get_event_loop()
 loop.run_until_complete(start_server)
 loop.create_task(run_async_function_with_interval(get_and_send_data, get_cpu_usage, 1))
 loop.create_task(run_async_function_with_interval(get_and_send_data, get_mem_usage, 1))
+loop.create_task(run_async_function_with_interval(get_and_send_data, get_disk_usage, 1))
 loop.create_task(run_async_function_with_interval(calculate_and_store_cpu_usage, 1, 1))
 loop.create_task(run_async_function_with_interval(calculate_and_store_mem_usage, 1, 1))
 loop.create_task(run_async_function_with_interval(calculate_and_store_disk_usage, 1, 1))
