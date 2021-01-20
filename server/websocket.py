@@ -67,8 +67,8 @@ async def calculate_and_store_cpu_usage(parameter):
         "measurement" : "cpu",
         "time": datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
         "fields": {
-            "cpu_idle": cpu_idle,
-            "cpu_total": cpu_total,
+            "cpu_idle": curr_cpu_idle,
+            "cpu_total": curr_cpu_total,
             "cpu_usage": cpu_usage
         }
     }]
