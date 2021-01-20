@@ -61,7 +61,7 @@ async def calculate_and_store_cpu_usage(parameter):
 
     cpu_total = curr_cpu_total - prev_cpu_total
     cpu_idle = curr_cpu_idle - prev_cpu_idle
-    cpu_usage = (cpu_total - cpu_idle) / cpu_total * 100
+    cpu_usage = (cpu_total - cpu_idle) * 100 / cpu_total
 
     current = [{
         "measurement" : "cpu",
