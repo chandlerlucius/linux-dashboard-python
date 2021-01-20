@@ -47,8 +47,8 @@ async def calculate_and_store_cpu_usage(parameter):
     db_client = InfluxDBClient(host='localhost', port=8086, database='system_stats')
     db_client.create_database('system_stats')
 
-    prev_cpu_idle_total = db_client.query('SELECT LAST("cpu_idle, cpu_total") FROM cpu')
-    prev_cpu_idle_total_dict = prev_cpu_idle_total.raw
+    prev_cpu_idle_total = db_client.query('SELECT * FROM cpu GROUP BY * ORDER BY DESC LIMIT 1')
+    prev_cpu_idle_total_dict = next(iter(list(prev_cpu_idle_total.get_points())), {})
     prev_cpu_idle = prev_cpu_idle_total_dict['cpu_idle'] if 'cpu_idle' in prev_cpu_idle_total_dict else 0
     prev_cpu_total = prev_cpu_idle_total_dict['cpu_total'] if 'cpu_total' in prev_cpu_idle_total_dict else 0
 
@@ -103,8 +103,8 @@ async def calculate_and_store_disk_usage(parameter):
     db_client = InfluxDBClient(host='localhost', port=8086, database='system_stats')
     db_client.create_database('system_stats')
 
-    prev_io_millis = db_client.query('SELECT LAST("io_millis") FROM disk')
-    prev_io_millis_dict = prev_io_millis.raw
+    prev_io_millis = db_client.query('SELECT * FROM disk GROUP BY * ORDER BY DESC LIMIT 1')
+    prev_io_millis_dict = next(iter(list(prev_io_millis.get_points())), {})
     prev_millis = prev_io_millis_dict['io_millis'] if 'io_millis' in prev_io_millis_dict else 0
     print(prev_io_millis)
     print(prev_io_millis_dict)
