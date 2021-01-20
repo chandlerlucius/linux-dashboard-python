@@ -108,17 +108,18 @@ async def calculate_and_store_disk_usage(parameter):
     prev_millis = prev_io_millis_dict['io_millis'] if 'io_millis' in prev_io_millis_dict else 0
     print(prev_io_millis)
     print(prev_io_millis_dict)
+    print(prev_millis)
     
-    curr_time = int(time.time() * 1000)
+    curr_time = datetime.utcnow()
     prev_time = prev_io_millis_dict['time'] if 'time' in prev_io_millis_dict else 0
     print(curr_time)
     print(prev_time)
 
-    disk_usage = (curr_io_millis - prev_millis) / (curr_time - prev_time)
+    disk_usage = (curr_io_millis - prev_millis) / ((curr_time - prev_time).total_seconds() * 1000)
 
     current = [{
         "measurement" : "disk",
-        "time": curr_time,
+        "time": curr_time.strftime('%Y-%m-%dT%H:%M:%SZ'),
         "fields": {
             "io_millis": curr_io_millis,
             "disk_usage": disk_usage
