@@ -38,7 +38,7 @@ async def get_mem_usage():
     mem_usage.raw['series'][0]['suffix'] = '%'
     return json.dumps(mem_usage.raw['series'][0])
 
-async def get_mem_usage():
+async def get_disk_usage():
     db_client = InfluxDBClient(host='localhost', port=8086, database='system_stats')
     mem_usage = db_client.query('SELECT disk_usage FROM disk WHERE time > now() - 1m') 
     mem_usage.raw['series'][0]['max'] = 100
