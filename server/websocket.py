@@ -111,7 +111,7 @@ async def calculate_and_store_disk_usage(parameter):
     print(prev_millis)
     
     curr_time = datetime.utcnow()
-    prev_time = prev_io_millis_dict['time'] if 'time' in prev_io_millis_dict else 0
+    prev_time = prev_io_millis_dict['time'] if 'time' in prev_io_millis_dict else datetime.utcnow()
     print(curr_time)
     print(prev_time)
 
