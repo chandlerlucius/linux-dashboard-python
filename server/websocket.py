@@ -113,16 +113,11 @@ async def calculate_and_store_disk_usage(parameter):
     prev_io_millis = db_client.query('SELECT * FROM disk GROUP BY * ORDER BY DESC LIMIT 1')
     prev_io_millis_dict = next(iter(list(prev_io_millis.get_points())), {})
     prev_millis = prev_io_millis_dict['io_millis'] if 'io_millis' in prev_io_millis_dict else 0
-    print(prev_io_millis)
-    print(prev_io_millis_dict)
-    print(prev_millis)
     
     curr_time = datetime.utcnow()
     prev_time = datetime.strptime(prev_io_millis_dict['time'], '%Y-%m-%dT%H:%M:%SZ') if 'time' in prev_io_millis_dict else datetime.utcnow()
-    print(curr_time)
-    print(prev_time)
 
-    disk_usage = (curr_io_millis - prev_millis) / ((curr_time - prev_time).total_seconds() * 1000)
+    disk_usage = (curr_io_millis - prev_millis) * 100 / ((curr_time - prev_time).total_seconds() * 1000)
 
     current = [{
         "measurement" : "disk",
