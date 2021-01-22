@@ -11,12 +11,12 @@ const resizeCharts = function () {
 
 const updateChart = function (json) {
     const id = 'chart-' + json.name;
-    let chartElement = document.querySelector('#' + id);
+    let chartElement = document.getElementById(id);
     let chart;
     if(!chartElement) {
-        const chartTemplate = document.querySelector('#chart-template').content.cloneNode(true);
+        const chartTemplate = document.getElementById('chart-template').content.cloneNode(true);
         chartTemplate.querySelector('.chart').id = id;
-        document.body.appendChild(chartTemplate);
+        document.getElementById(json.type + '-div').appendChild(chartTemplate);
         chartElement = document.querySelector('#' + id);
         chart = echarts.init(chartElement);
     } else {
