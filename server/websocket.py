@@ -26,24 +26,27 @@ async def get_and_send_data(data_function):
 
 async def get_cpu_usage():
     db_client = InfluxDBClient(host='localhost', port=8086, database='system_stats')
-    cpu_usage = db_client.query('SELECT cpu_usage FROM cpu WHERE time > now() - 1m') 
-    cpu_usage.raw['series'][0]['max'] = 100
-    cpu_usage.raw['series'][0]['suffix'] = '%'
-    return json.dumps(cpu_usage.raw['series'][0])
+    usage = db_client.query('SELECT cpu_usage FROM cpu WHERE time > now() - 1m') 
+    usage.raw['series'][0]['type'] = 'status'
+    usage.raw['series'][0]['max'] = 100
+    usage.raw['series'][0]['suffix'] = '%'
+    return json.dumps(usage.raw['series'][0])
 
 async def get_mem_usage():
     db_client = InfluxDBClient(host='localhost', port=8086, database='system_stats')
-    mem_usage = db_client.query('SELECT mem_usage, swap_usage FROM memory WHERE time > now() - 1m') 
-    mem_usage.raw['series'][0]['max'] = 100
-    mem_usage.raw['series'][0]['suffix'] = '%'
-    return json.dumps(mem_usage.raw['series'][0])
+    usage = db_client.query('SELECT mem_usage, swap_usage FROM memory WHERE time > now() - 1m') 
+    usage.raw['series'][0]['type'] = 'status'
+    usage.raw['series'][0]['max'] = 100
+    usage.raw['series'][0]['suffix'] = '%'
+    return json.dumps(usage.raw['series'][0])
 
 async def get_disk_usage():
     db_client = InfluxDBClient(host='localhost', port=8086, database='system_stats')
-    mem_usage = db_client.query('SELECT disk_usage FROM disk WHERE time > now() - 1m') 
-    mem_usage.raw['series'][0]['max'] = 100
-    mem_usage.raw['series'][0]['suffix'] = '%'
-    return json.dumps(mem_usage.raw['series'][0])
+    usage = db_client.query('SELECT disk_usage FROM disk WHERE time > now() - 1m') 
+    usage.raw['series'][0]['type'] = 'status'
+    usage.raw['series'][0]['max'] = 100
+    usage.raw['series'][0]['suffix'] = '%'
+    return json.dumps(usage.raw['series'][0])
     
 async def calculate_and_store_cpu_usage(parameter):
     curr_cpu_idle_total = check_output(['sh', 'server_stats.sh', 'cpu_idle_total']).decode("utf-8")
