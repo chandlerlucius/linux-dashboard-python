@@ -23,6 +23,7 @@
 
   <title>PWA Linux Dashboard</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.0.1/echarts.common.min.js"></script>
+  <script src="./js/main.js"></script>
   <script src="./js/websocket.js"></script>
   <script>
     if ('serviceWorker' in navigator) {
@@ -40,7 +41,11 @@
 </head>
 
 <body>
-  <h1>PWA Linux Dashboard</h1>
+  <button id="status" class="tab-button">Status</button>
+  <button id="general" class="tab-button">General</button>
+
+  <div id="status-div" class="tab"></div>
+  <div id="general-div" class="tab"></div>
 </body>
 
 <template id="chart-template">
