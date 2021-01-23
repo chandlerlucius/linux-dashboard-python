@@ -64,7 +64,7 @@ async def calculate_and_store_cpu_usage(parameter):
     await transaction.write_to_db(current)
 
 async def calculate_and_store_mem_usage(parameter):
-    curr_mem_available_total = check_output(['sh', 'server_stats.sh', 'mem_available_total']).decode("utf-8")
+    curr_mem_available_total = run_script('mem_available_total')
     curr_mem_available_total_json = json.loads(curr_mem_available_total)
     curr_mem_available = curr_mem_available_total_json['mem_available']
     curr_mem_total = curr_mem_available_total_json['mem_total']
