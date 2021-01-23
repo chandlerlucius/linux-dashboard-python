@@ -92,7 +92,7 @@ async def calculate_and_store_mem_usage(parameter):
     await transaction.write_to_db(current)
     
 async def calculate_and_store_disk_usage(parameter):
-    io_millis = check_output(['sh', 'server_stats.sh', 'disk_info']).decode("utf-8")
+    io_millis = un_script('disk_info')
     io_millis_json = json.loads(io_millis)
     curr_io_millis = io_millis_json['io_millis']
     
