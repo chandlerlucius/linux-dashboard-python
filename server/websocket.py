@@ -8,8 +8,10 @@ import websockets
 import traceback
 import json
 import time
+from transaction import Transaction
 
 clients = set()
+transaction = Transaction()
 
 async def run_async_function_with_interval(function, parameter, interval):
     while True:
@@ -25,28 +27,13 @@ async def get_and_send_data(data_function):
         await send_to_clients(data)
 
 async def get_cpu_usage():
-    db_client = InfluxDBClient(host='localhost', port=8086, database='system_stats')
-    usage = db_client.query('SELECT cpu_usage FROM cpu WHERE time > now() - 1m') 
-    usage.raw['series'][0]['type'] = 'status'
-    usage.raw['series'][0]['max'] = 100
-    usage.raw['series'][0]['suffix'] = '%'
-    return json.dumps(usage.raw['series'][0])
+    return await transaction.query_usage_from_db('cpu', ['cpu_usage'])
 
 async def get_mem_usage():
-    db_client = InfluxDBClient(host='localhost', port=8086, database='system_stats')
-    usage = db_client.query('SELECT mem_usage, swap_usage FROM memory WHERE time > now() - 1m') 
-    usage.raw['series'][0]['type'] = 'status'
-    usage.raw['series'][0]['max'] = 100
-    usage.raw['series'][0]['suffix'] = '%'
-    return json.dumps(usage.raw['series'][0])
+    return await transaction.query_usage_from_db('memory', ['mem_usage', 'swap_usage'])
 
 async def get_disk_usage():
-    db_client = InfluxDBClient(host='localhost', port=8086, database='system_stats')
-    usage = db_client.query('SELECT disk_usage FROM disk WHERE time > now() - 1m') 
-    usage.raw['series'][0]['type'] = 'status'
-    usage.raw['series'][0]['max'] = 100
-    usage.raw['series'][0]['suffix'] = '%'
-    return json.dumps(usage.raw['series'][0])
+    return await transaction.query_usage_from_db('disk', ['disk_usage'])
     
 async def calculate_and_store_cpu_usage(parameter):
     curr_cpu_idle_total = check_output(['sh', 'server_stats.sh', 'cpu_idle_total']).decode("utf-8")
@@ -54,11 +41,7 @@ async def calculate_and_store_cpu_usage(parameter):
     curr_cpu_idle = curr_cpu_idle_total_json['cpu_idle']
     curr_cpu_total = curr_cpu_idle_total_json['cpu_total']
 
-    db_client = InfluxDBClient(host='localhost', port=8086, database='system_stats')
-    db_client.create_database('system_stats')
-
-    prev_cpu_idle_total = db_client.query('SELECT * FROM cpu GROUP BY * ORDER BY DESC LIMIT 1')
-    prev_cpu_idle_total_dict = next(iter(list(prev_cpu_idle_total.get_points())), {})
+    prev_cpu_idle_total_dict = await transaction.query_last_record_from_db('cpu')
     prev_cpu_idle = prev_cpu_idle_total_dict['cpu_idle'] if 'cpu_idle' in prev_cpu_idle_total_dict else 0
     prev_cpu_total = prev_cpu_idle_total_dict['cpu_total'] if 'cpu_total' in prev_cpu_idle_total_dict else 0
 
@@ -75,7 +58,7 @@ async def calculate_and_store_cpu_usage(parameter):
             "cpu_usage": cpu_usage
         }
     }]
-    db_client.write_points(current)
+    await transaction.write_to_db(current)
 
 async def calculate_and_store_mem_usage(parameter):
     curr_mem_available_total = check_output(['sh', 'server_stats.sh', 'mem_available_total']).decode("utf-8")
@@ -103,18 +86,14 @@ async def calculate_and_store_mem_usage(parameter):
             "swap_usage": swap_usage
         }
     }]
-    db_client.write_points(current)
+    await transaction.write_to_db(current)
     
 async def calculate_and_store_disk_usage(parameter):
     io_millis = check_output(['sh', 'server_stats.sh', 'disk_info']).decode("utf-8")
     io_millis_json = json.loads(io_millis)
     curr_io_millis = io_millis_json['io_millis']
-
-    db_client = InfluxDBClient(host='localhost', port=8086, database='system_stats')
-    db_client.create_database('system_stats')
-
-    prev_io_millis = db_client.query('SELECT * FROM disk GROUP BY * ORDER BY DESC LIMIT 1')
-    prev_io_millis_dict = next(iter(list(prev_io_millis.get_points())), {})
+    
+    prev_io_millis_dict = await transaction.query_last_record_from_db('disk')
     prev_millis = prev_io_millis_dict['io_millis'] if 'io_millis' in prev_io_millis_dict else 0
     
     curr_time = datetime.utcnow()
@@ -130,7 +109,7 @@ async def calculate_and_store_disk_usage(parameter):
             "disk_usage": disk_usage
         }
     }]
-    db_client.write_points(current)
+    await transaction.write_to_db(current)
 
 async def send_to_clients(json):
     for client in clients:
