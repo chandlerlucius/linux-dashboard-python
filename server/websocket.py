@@ -34,9 +34,12 @@ async def get_mem_usage():
 
 async def get_disk_usage():
     return await transaction.query_usage_from_db('disk', ['disk_usage'])
+
+async def run_script(function):
+    return check_output(['sh', 'server_stats.sh', function]).decode("utf-8")
     
 async def calculate_and_store_cpu_usage(parameter):
-    curr_cpu_idle_total = check_output(['sh', 'server_stats.sh', 'cpu_idle_total']).decode("utf-8")
+    curr_cpu_idle_total = run_script('cpu_idle_total')
     curr_cpu_idle_total_json = json.loads(curr_cpu_idle_total)
     curr_cpu_idle = curr_cpu_idle_total_json['cpu_idle']
     curr_cpu_total = curr_cpu_idle_total_json['cpu_total']
