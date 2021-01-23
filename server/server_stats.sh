@@ -40,9 +40,9 @@ mem_available_total() {
     echo "{ \"mem_available\" : $mem_available, \"mem_total\": $mem_total, \"swap_available\" : $swap_available, \"swap_total\": $swap_total }"
 }
 
-# Disk info
+# Disk Stats
 # https://www.percona.com/doc/percona-toolkit/2.1/pt-diskstats.html
-disk_info() {
+disk_stats() {
     io_millis=$(awk '$2 == "0" { print $13 " " }' /proc/diskstats | tr -d '\n')
     total_millis=0;
     for millis in $io_millis
@@ -51,6 +51,12 @@ disk_info() {
     done
 
     echo "{ \"io_millis\": $total_millis }"
+}
+
+# CPU Info
+cpu_info() {
+    cpu_info=$(lscpu | grep -i "^cpu\|^model\|^vendor\|socket" | awk -F: '{print "\""$1"\": \""$2"\"," }')
+    echo "{ ${cpu_info%?} }"
 }
 
 help() {
