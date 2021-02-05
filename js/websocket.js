@@ -10,7 +10,7 @@ const resizeCharts = function () {
 };
 
 const updateChart = function (json) {
-    const id = 'chart-' + json.name;
+    const id = 'chart-' + json.id;
     let chartElement = document.getElementById(id);
     let chart;
     if(!chartElement) {
@@ -83,6 +83,26 @@ const updateChart = function (json) {
     });
 }
 
+const updateTable = function (json) {
+    const id = 'table-' + json.id;
+    let tableContainer = document.getElementById(id);
+    if(!tableContainer) {
+        const tableTemplate = document.getElementById('table-template').content.cloneNode(true);
+        tableTemplate.querySelector('div').id = id;
+        document.getElementById(json.type + '-div').appendChild(tableTemplate);
+        tableContainer = document.querySelector('#' + id);
+    }
+    tableContainer.querySelector('h3').innerHTML = json.name;
+    const tableElement = tableContainer.querySelector('.table');
+    json.data.forEach(function(datem, i) {
+        const row = tableElement.insertRow(i);
+        const field = row.insertCell();
+        field.innerHTML = datem.key;
+        const value = row.insertCell();
+        value.innerHTML = datem.value;
+    });
+}
+
 window.addEventListener('DOMContentLoaded', function () {
     const hostname = window.location.hostname;
     if (window.location.protocol === 'https:') {
@@ -113,11 +133,12 @@ const start = function () {
 
     socket.onmessage = function (event) {
         try {
-            if(event.data === 'heartbeat') {
-                return;
-            }
             const json = JSON.parse(event.data);
-            updateChart(json);
+            if(json.type === 'status') {
+                updateChart(json);
+            } else {
+                updateTable(json);
+            }
         } catch (error) {
             console.log(error);
         }
