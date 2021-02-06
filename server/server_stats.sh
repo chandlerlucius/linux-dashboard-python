@@ -13,6 +13,7 @@ get_categories() {
     echo '[
         { "id": "cpu_usage", "interval": 1 }, 
         { "id": "mem_usage", "interval": 1 },
+        { "id": "disk_usage", "interval": 1 },
         { "id": "cpu_info", "interval": 10 }
     ]'
 }
@@ -20,7 +21,8 @@ get_categories() {
 get_statistics() {
     echo '[
         { "id": "set_cpu_usage", "interval": 1 },
-        { "id": "set_mem_usage", "interval": 1 }
+        { "id": "set_mem_usage", "interval": 1 },
+        { "id": "set_disk_usage", "interval": 1 }
     ]'
 }
 
