@@ -7,9 +7,9 @@ const handleTabs = function() {
 
 const tabClick = function() {
     document.querySelectorAll('.tab').forEach(function(tab) {
-        tab.style.display = 'none';
+        tab.classList.add('hidden');
     });
-    document.getElementById(this.id + '-div').style.display = '';
+    document.getElementById(this.id + '-div').classList.remove('hidden');
 }
 
 document.addEventListener('DOMContentLoaded', function() {
