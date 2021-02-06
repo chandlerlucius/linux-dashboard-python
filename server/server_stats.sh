@@ -105,7 +105,10 @@ set_mem_usage() {
     swap_available=$(sed -n 's/^SwapFree:*//p' /proc/meminfo | awk '{print $1}')
     
     mem_usage=$(((mem_total - mem_available) * 100 / mem_total))
-    swap_usage=$(((swap_total - swap_available) * 100 / swap_total))
+    if [ "$swap_total" -gt 0 ]
+    then
+        swap_usage=$(((swap_total - swap_available) * 100 / swap_total))
+    fi
 
     write_db "mem_usage mem_available=$mem_available
     mem_usage mem_total=$mem_total
@@ -119,20 +122,26 @@ set_mem_usage() {
 # https://www.percona.com/doc/percona-toolkit/2.1/pt-diskstats.html
 set_disk_usage() {
     io_millis=$(awk '$2 == "0" { print $13 " " }' /proc/diskstats | tr -d '\n')
-    total_millis=0
+    curr_millis=0
     for millis in $io_millis
     do
-        total_millis=$((total_millis + millis))
+        curr_millis=$((curr_millis + millis))
     done
+    curr_time=$(date +%s%3N)
 
     prev_disk=$(query_table_for_last_record "disk_usage")
     prev_disk=$(echo "$prev_disk" | jq ' [.columns, .values[]] | transpose | map( {(.[0]): .[1]}) | add')
     prev_millis=$(echo "$prev_disk" | jq .io_millis)
-    
-    # disk_usage = (total_millis - prev_millis) * 100 / ((curr_time - prev_time).total_seconds() * 1000)
+    prev_time=$(echo "$prev_disk" | jq .time)
 
-    write_db "disk_usage io_millis=$total_millis
-    disk_usage=$disk_usage"
+    echo "$prev_time - $prev_millis - $curr_time - $curr_millis"
+    diff_millis=$((curr_millis - prev_millis))
+    diff_time=$((curr_time - prev_time))
+    disk_usage=$((diff_millis * 100 / diff_time))
+    echo "$disk_usage"
+
+    write_db "disk_usage io_millis=$curr_millis
+    disk_usage disk_usage=$disk_usage"
 }
 
 # CPU Usage
