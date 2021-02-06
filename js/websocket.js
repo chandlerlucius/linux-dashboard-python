@@ -95,11 +95,15 @@ const updateTable = function (json) {
     tableContainer.querySelector('h3').innerHTML = json.name;
     const tableElement = tableContainer.querySelector('.table');
     json.data.forEach(function(datem, i) {
-        const row = tableElement.insertRow(i);
-        const field = row.insertCell();
-        field.innerHTML = datem.key;
-        const value = row.insertCell();
-        value.innerHTML = datem.value;
+        let rowElement = tableElement.rows[i];
+        if(!rowElement) {
+            const row = tableElement.insertRow(i);
+            row.insertCell();
+            row.insertCell();
+            rowElement = tableElement.rows[i];
+        }
+        rowElement.cells[0].innerHTML = datem.key;
+        rowElement.cells[1].innerHTML = datem.value;
     });
 }
 
