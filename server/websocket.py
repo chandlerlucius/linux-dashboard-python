@@ -40,7 +40,7 @@ async def get_and_send_data_async(json):
             print(traceback.format_exc())
         finally:
             after=time.time()
-            # await asyncio.sleep(json["interval"] - (after - before))
+            await asyncio.sleep(json["interval"] - (after - before))
 
 async def store_data(json):
     while True:
