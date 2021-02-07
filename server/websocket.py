@@ -33,12 +33,14 @@ loop.run_until_complete(start_server)
 async def get_and_send_data_async(json):
     while True:
         try:
+            before=time.time()
             data = run_script(json["id"])
             await send_to_clients(data)
         except Exception:
             print(traceback.format_exc())
         finally:
-            await asyncio.sleep(json["interval"])
+            after=time.time()
+            await asyncio.sleep(json["interval"] - (after - before))
 
 async def store_data(json):
     while True:
