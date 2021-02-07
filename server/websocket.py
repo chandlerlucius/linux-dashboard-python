@@ -49,9 +49,11 @@ async def store_data(json):
             print(traceback.format_exc())
         finally:
             after=time.time()
+            print('\n')
             print(json["id"])
-            print(after)
             print(before)
+            print(after)
+            print(json["interval"] - after - before)
             await asyncio.sleep(json["interval"] - after - before)
 
 def get_categories_and_run_in_intervals():
