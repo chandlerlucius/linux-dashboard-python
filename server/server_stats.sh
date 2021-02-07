@@ -54,7 +54,7 @@ write_db() {
 
 # Format json results with "series" or empty {}
 format_results() {
-    series=$(echo "$1" | jq '.results[].series[]?')
+    series=$(echo "$1" | sed 's/null/0/g' | jq '.results[].series[]?')
     if [ "$series" != "" ]
     then
         echo "$series"
@@ -68,28 +68,32 @@ format_results() {
 # http://colby.id.au/calculating-cpu-usage-from-proc-stat/
 set_cpu_usage() {    
     cpu=$(sed -n 's/^cpu\s//p' /proc/stat)
-    idle=$(echo "$cpu" | awk '{print $4 + $5}')
-    guest=$(echo "$cpu" | awk '{print $9 + $10}')
+    cpu_idle=$(echo "$cpu" | awk '{print $4 + $5}')
+    cpu_guest=$(echo "$cpu" | awk '{print $9 + $10}')
 
-    total=0
+    cpu_total=0
     for value in $cpu
     do
-        total=$((total+value))
+        cpu_total=$((cpu_total + value))
     done
-    total=$((total-guest))
+    cpu_total=$((cpu_total - cpu_guest))
 
     prev_cpu=$(query_table_for_last_record "cpu_usage")
     prev_cpu=$(echo "$prev_cpu" | jq ' [.columns, .values[]] | transpose | map( {(.[0]): .[1]}) | add')
     prev_idle=$(echo "$prev_cpu" | jq .cpu_idle)
     prev_total=$(echo "$prev_cpu" | jq .cpu_total)
 
-    idle_diff=$((idle-prev_idle))
-    total_diff=$((total-prev_total))
-    usage=$(((1000*(total_diff-idle_diff)/total_diff+5)/10))
+    cpu_usage=0
+    if [ "$prev_idle" -gt 0 ] && [ "$prev_total" -gt 0 ]
+    then
+        idle_diff=$((cpu_idle - prev_idle))
+        total_diff=$((cpu_total - prev_total))
+        cpu_usage=$(((1000 * (total_diff - idle_diff) / total_diff + 5) / 10))
+    fi
 
-    write_db "cpu_usage cpu_idle=$idle
-    cpu_usage cpu_total=$total
-    cpu_usage cpu_usage=$usage"
+    write_db "cpu_usage cpu_idle=$cpu_idle
+    cpu_usage cpu_total=$cpu_total
+    cpu_usage cpu_usage=$cpu_usage"
 }
 
 # Memory/Swap Available & Total
@@ -136,11 +140,13 @@ set_disk_usage() {
     prev_millis=$(echo "$prev_disk" | jq .io_millis)
     prev_time=$(echo "$prev_disk" | jq .time)
 
-    echo "$prev_time - $prev_millis - $curr_time - $curr_millis"
-    diff_millis=$((curr_millis - prev_millis))
-    diff_time=$((curr_time - prev_time))
-    disk_usage=$((diff_millis * 100 / diff_time))
-    echo "$disk_usage"
+    disk_usage=0
+    if [ "$prev_millis" -gt 0 ] && [ "$prev_time" -gt 0 ]
+    then
+        diff_millis=$((curr_millis - prev_millis))
+        diff_time=$((curr_time - prev_time))
+        disk_usage=$((diff_millis * 100 / diff_time))
+    fi
 
     write_db "disk_usage io_millis=$curr_millis
     disk_usage disk_usage=$disk_usage"
