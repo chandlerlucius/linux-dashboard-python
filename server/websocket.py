@@ -3,6 +3,7 @@
 from influxdb import InfluxDBClient
 from subprocess import check_output
 from datetime import datetime
+from multiprocessing import Process
 import asyncio
 import websockets
 import traceback
@@ -24,6 +25,7 @@ async def ws_handler(websocket, path):
     print(clients)
     await websocket.wait_closed()
     clients.remove(websocket)
+    print(clients)
 
 start_server = websockets.serve(ws_handler, "localhost", 8081)
     
@@ -53,18 +55,19 @@ async def store_data(json):
             after=time.time()
             await asyncio.sleep(json["interval"] - (after - before))
 
-def get_categories_and_run_in_intervals():
+async def run_tasks():
+    tasks = []
     categories = run_script("get_categories")
     for category in categories:
-        loop.create_task(get_and_send_data_async(category))
+        task = asyncio.ensure_future(get_and_send_data_async(category))
+        tasks.append(task)
 
-def get_statistics_and_run_in_intervals():
     statistics = run_script("get_statistics")
-    print(statistics)
     for statistic in statistics:
-        loop.create_task(store_data(statistic))
+        task = asyncio.ensure_future(store_data(statistic))
+        tasks.append(task)
 
-get_statistics_and_run_in_intervals()
-get_categories_and_run_in_intervals()
-
-loop.run_forever()
+    await asyncio.gather(*tasks)
+    
+future = asyncio.ensure_future(run_tasks())
+loop.run_until_complete(future)
